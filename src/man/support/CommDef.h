@@ -37,14 +37,14 @@ typedef struct robot_ip_pair_t
 
 // Bowdoin IPs.
 static const robot_ip_pair wash    = {"wash"   , "139.140.192.9" };
-static const robot_ip_pair river   = {"river"  , "139.140.192.10"};
-static const robot_ip_pair jayne   = {"jayne"  , "139.140.192.11"};
-static const robot_ip_pair simon   = {"simon"  , "139.140.192.12"};
-static const robot_ip_pair inara   = {"inara"  , "139.140.192.13"};
+static const robot_ip_pair river   = {"river"  , "192.168.0.191"};
+static const robot_ip_pair jayne   = {"jayne"  , "192.168.0.197"};
+static const robot_ip_pair simon   = {"simon"  , "192.168.0.194"};
+static const robot_ip_pair inara   = {"inara"  , "192.168.0.195"};
 static const robot_ip_pair kaylee  = {"kaylee" , "139.140.192.14"};
-static const robot_ip_pair vera    = {"vera"   , "139.140.192.15"};
-static const robot_ip_pair mal     = {"mal"    , "139.140.192.16"};
-static const robot_ip_pair zoe     = {"zoe"    , "139.140.192.17"};
+static const robot_ip_pair vera    = {"vera"   , "192.168.0.196"};
+static const robot_ip_pair mal     = {"mal"    , "192.168.0.199"};
+static const robot_ip_pair zoe     = {"zoe"    , "192.168.0.193"};
 
 static const robot_ip_pair robotIPs[NUM_ROBOTS] = {wash, river, jayne,
                                                    simon, inara, kaylee,
