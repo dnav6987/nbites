@@ -62,6 +62,7 @@ class QuadraticBezier:
     def moveVector(self):
         changeX = self.destinationX - self.previousX
         changeY = self.destinationY - self.previousY
+        #normalizer = math.sqrt(changeX*changeX + changeY*changeY)
         return (changeX, changeY)
 
     def setNewRelativeEndPoint():
@@ -73,7 +74,7 @@ class QuadraticBezier:
     def nextPointOnCurve(self, time):
         if time >= 0 and time <= 1:
             self.setCurrentPoint()
-            self.pointAtTime(time)
+            self.setPointAtTime(time)
             self.setHeading()
         else:
             print "You must input a time between 0 and 1"

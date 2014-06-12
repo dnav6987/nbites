@@ -13,8 +13,6 @@ class BezierApproach:
         #TODO make robot location
         self.startPoint = (0, 0)
         #TODO make sweet spot
-        #self.endPoint = (self.player.brain.ball.x, self.player.brain.ball.y)
-        #self.startPoint = (400., 50.)
         self.endPoint = (self.player.brain.ball.rel_x, self.player.brain.ball.rel_y)
         #TODO make kick destination
         self.destinationPoint = (0., 175.)
