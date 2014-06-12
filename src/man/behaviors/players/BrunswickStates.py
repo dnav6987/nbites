@@ -102,13 +102,15 @@ def gamePlaying(player):
     if not player.brain.motion.calibrated:
         return player.stay()
 
+    #TODO
+    return player.goNow('relWalkBezierCurvePath')
+
     if (player.isKickingOff and player.brain.gameController.ownKickOff and
         player.brain.gameController.timeSincePlaying < 10):
         player.shouldKickOff = True
         return player.goNow('approachBall')
     elif player.brain.gameController.timeSincePlaying < 10:
         return player.goNow('waitForKickoff')
-    return player.goNow('positionAtHome')
 
 @superState('gameControllerResponder')
 def gameFinished(player):

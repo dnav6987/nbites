@@ -38,6 +38,7 @@ set ( BEHAVIORS_SWITCH ${CMAKE_CURRENT_BINARY_DIR}/players/Switch.py)
 set( BEHAVIORS_PYTHON_SUBDIRS headTracker
                            kickDecider
                            navigator
+			   bezierApproach
                            players
                            robots
                            typeDefs

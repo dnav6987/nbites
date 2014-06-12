@@ -12,6 +12,7 @@ from ..util import *
 from objects import RelRobotLocation, Location
 import noggin_constants as nogginConstants
 import time
+from ..bezierApproach import BezierApproach
 
 DRIBBLE_ON_KICKOFF = False
 
@@ -361,5 +362,44 @@ def positionForPenaltyKick(player):
     if positionForPenaltyKick.yes:
         print "ball relX: ", ball.rel_x
         print "ball relY: ", ball.rel_y
+
+    return player.stay()
+
+@superState('gameControllerResponder')
+def walkBezierCurvePath(player):
+    #TODO test
+    if player.firstFrame():
+        walkBezierCurvePath.bez = BezierApproach.BezierApproach(player)
+        walkBezierCurvePath.bez.counter = 1
+        globalDestAndHeading = walkBezierCurvePath.bez.getNextDestinationAndHeading()
+        #TODO check rel heading
+        relDestAndHeading = RelRobotLocation(globalDestAndHeading[0] - player.brain.loc.x, 
+            globalDestAndHeading[1] - player.brain.loc.y, 
+            globalDestAndHeading[2] - player.brain.loc.h)
+        print relDestAndHeading
+        player.brain.nav.destinationWalkTo(relDestAndHeading, Navigator.SLOW_SPEED, True)
+
+    if  (walkBezierCurvePath.bez.isAtDestination() and 
+        walkBezierCurvePath.bez.counter <= walkBezierCurvePath.bez.stepIncrement):
+        globalDestAndHeading = walkBezierCurvePath.bez.getNextDestinationAndHeading()
+        #TODO check rel heading
+        relDestAndHeading = RelRobotLocation(globalDestAndHeading[0] - player.brain.loc.x, 
+            globalDestAndHeading[0] - player.brain.loc.y, 
+            globalDestAndHeading[2] - player.brain.loc.h)
+        print relDestAndHeading
+        player.brain.nav.destinationWalkTo(relDestAndHeading, Navigator.QUICK_SPEED, True)
+    return player.stay()
+
+@superState('gameControllerResponder')
+def relWalkBezierCurvePath(player):
+    #TODO test
+    if player.firstFrame():
+        relWalkBezierCurvePath.bez = BezierApproach.BezierApproach(player)
+        relWalkBezierCurvePath.bez.counter = 1
+        #TODO check rel heading
+        tempRelDestAndHeading = relWalkBezierCurvePath.bez.getNextRelDestinationAndHeading()
+        relDestAndHeading = RelRobotLocation(tempRelDestAndHeading[0], tempRelDestAndHeading[1], tempRelDestAndHeading[2])
+        print relDestAndHeading
+        player.brain.nav.destinationWalkTo(relDestAndHeading, Navigator.SLOW_SPEED, True)
 
     return player.stay()
