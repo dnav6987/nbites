@@ -54,7 +54,10 @@ class QuadraticBezier:
 
     def setRelHeading(self):
         vector = self.moveVector()
-        self.relHeading = math.degrees(math.atan(vector[1]/vector[0]))
+        if vector[0] > 0:
+            self.relHeading = math.degrees(math.atan(vector[1]/vector[0]))
+        else:
+            self.relHeading = -1*(90 + math.degrees(math.atan(vector[1]/vector[0])))
 
     def getRelHeading(self):
         return self.relHeading
