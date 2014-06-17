@@ -82,6 +82,9 @@ def prepareForKick(player):
         if dr_trans.shouldDribble(player):
             return player.goNow('decideDribble')
 
+
+#TODO skip orbit, have walk to desired middle position and send to 'position for kick'
+    #player.brain.nav.goTo('')
     return player.goNow('orbitBall')
 
 @superState('gameControllerResponder')
@@ -393,52 +396,67 @@ def walkBezierCurvePath(player):
 
 #treat ball as moving, not robot
 @superState('gameControllerResponder')
-def relWalkBezierCurvePathREAL(player): 
+def relWalkBezierCurvePath(player): 
     if player.firstFrame():
         player.brain.tracker.trackBall()
         relWalkBezierCurvePath.frameCount = 0
         relWalkBezierCurvePath.bez = BezierApproach.BezierApproach(player)
-        relWalkBezierCurvePath.bez.counter = 1
         #TODO check rel heading
         relWalkBezierCurvePath.tempRelDestAndHeading = relWalkBezierCurvePath.bez.getNextRelDestinationAndHeading()
-        relDestAndHeading = RelRobotLocation(relWalkBezierCurvePath.tempRelDestAndHeading[0], relWalkBezierCurvePath.tempRelDestAndHeading[1], relWalkBezierCurvePath.tempRelDestAndHeading[2])
+        relDestAndHeading = RelRobotLocation(relWalkBezierCurvePath.tempRelDestAndHeading[0], relWalkBezierCurvePath.tempRelDestAndHeading[1], 0.)
         print relDestAndHeading
-        player.brain.nav.destinationWalkTo(relDestAndHeading, Navigator.SLOW_SPEED, True)
+        player.brain.nav.destinationWalkTo(relDestAndHeading, Navigator.QUICK_SPEED, True)
         relWalkBezierCurvePath.initialBallX = player.brain.ball.rel_x
         relWalkBezierCurvePath.initialBallY = player.brain.ball.rel_y
         relWalkBezierCurvePath.initialBallH = math.degrees(player.brain.ball.bearing)
         return player.stay()
 
-    elif (relWalkBezierCurvePath.frameCount > 0 and relWalkBezierCurvePath.frameCount % 30 == 0):
+    else:
+        if relWalkBezierCurvePath.bez.counter >= relWalkBezierCurvePath.bez.stepIncrement:
+            #print "at the ball"
+            #player.stopWalking()
+            return player.goNow('approachBall')
         player.brain.tracker.trackBall()
         newRelX = relWalkBezierCurvePath.tempRelDestAndHeading[0] + (player.brain.ball.rel_x - relWalkBezierCurvePath.initialBallX)
         newRelY = relWalkBezierCurvePath.tempRelDestAndHeading[1] + (player.brain.ball.rel_y - relWalkBezierCurvePath.initialBallY)
-        newRelH = relWalkBezierCurvePath.tempRelDestAndHeading[2] + (math.degrees(player.brain.ball.bearing) - relWalkBezierCurvePath.initialBallH)
-        updateDest = RelRobotLocation(newRelX, newRelY, newRelH)
+        #newRelH = relWalkBezierCurvePath.tempRelDestAndHeading[2] + (math.degrees(player.brain.ball.bearing) - relWalkBezierCurvePath.initialBallH)
+        updateDest = RelRobotLocation(newRelX, newRelY, 0.)
         player.brain.nav.updateDestinationWalkDest(updateDest)
-        print updateDest
-        #if (newRelX < 5 and newRelY < 5 and newRelH < 2.5):
-        #    return player.brain.nav.goNow('stand')
+        if (math.fabs(newRelX) < 15 and math.fabs(newRelY) < 15):
+            print "made it"
+            #player.stopWalking()
+            #relWalkBezierCurvePath.bez = BezierApproach.BezierApproach(player)
+            #TODO check rel heading
+            relWalkBezierCurvePath.tempRelDestAndHeading = relWalkBezierCurvePath.bez.getNextRelDestinationAndHeading()
+            updateDest = RelRobotLocation(relWalkBezierCurvePath.tempRelDestAndHeading[0], relWalkBezierCurvePath.tempRelDestAndHeading[1], 0.)
+            print updateDest
+            player.brain.nav.updateDestinationWalkDest(updateDest)
+            relWalkBezierCurvePath.initialBallX = player.brain.ball.rel_x
+            relWalkBezierCurvePath.initialBallY = player.brain.ball.rel_y
+            # relWalkBezierCurvePath.initialBallH = math.degrees(player.brain.ball.bearing)
+            return player.stay()
     #print player.brain.ball.rel_x - relWalkBezierCurvePath.prevBallX
     #print player.brain.ball.rel_y - relWalkBezierCurvePath.prevBallY
     #print math.degrees(player.brain.ball.bearing) - relWalkBezierCurvePath.prevBallH
-    relWalkBezierCurvePath.frameCount += 1
     return player.stay()
 
 @superState('gameControllerResponder')
-def relWalkBezierCurvePath(player):
+def relWalkBezierCurvePathTEST(player):
     if player.firstFrame():
-        relWalkBezierCurvePath.temp = (100., 0., 90.)
+        relWalkBezierCurvePath.temp = (player.brain.ball.rel_x, player.brain.ball.rel_y, 0.)
         relDest = RelRobotLocation(relWalkBezierCurvePath.temp[0], relWalkBezierCurvePath.temp[1], relWalkBezierCurvePath.temp[2])
         player.brain.nav.destinationWalkTo(relDest, Navigator.SLOW_SPEED, False)
-        relWalkBezierCurvePath.i = 0
         print relWalkBezierCurvePath.temp
 
-    # else:
-    #     newX = relWalkBezierCurvePath.temp[0] - .05*relWalkBezierCurvePath.i
-    #     newY = relWalkBezierCurvePath.temp[1] - .075*relWalkBezierCurvePath.i
-    #     newH = relWalkBezierCurvePath.temp[2] - .075*relWalkBezierCurvePath.i
-    #     updateDest = RelRobotLocation(newX, newY, newH)
-    #     player.brain.nav.updateDestinationWalkDest(updateDest)
-    # relWalkBezierCurvePath.i += 1
+    else:
+        updateDest = (player.brain.ball.rel_x, player.brain.ball.rel_y, 0.)
+        relDestUpdate = RelRobotLocation(updateDest[0], updateDest[1], updateDest[2])
+        player.brain.nav.updateDestinationWalkDest(relDestUpdate)
+        if (math.fabs(player.brain.ball.rel_x) < 15 and math.fabs(player.brain.ball.rel_y) < 15):
+            player.stopWalking()
+            print "made it"
     return player.stay()
+
+#approachBall
+#approach Kick position
+#approach ball
