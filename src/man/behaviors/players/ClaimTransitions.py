@@ -9,6 +9,10 @@ def shouldCedeClaim(player):
     if not player.useClaims:
         return False
 
+    if not player.brain.motion.calibrated:
+        player.claimedBall
+        return True
+
     playerWeight = weightedDistAndHeading(player.brain.ball.distance, \
                                               player.brain.loc.h, player.brain.ball.bearing_deg)
     for mate in player.brain.teamMembers:
