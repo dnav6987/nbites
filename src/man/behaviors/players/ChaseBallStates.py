@@ -13,7 +13,7 @@ from ..util import *
 from objects import RelRobotLocation, Location
 import noggin_constants as nogginConstants
 import time
-from math import fabs, degrees
+from math import fabs, degrees, radians, cos, sin
 
 @superState('gameControllerResponder')
 @stay
@@ -81,6 +81,34 @@ def prepareForKick(player):
 
     return player.goNow('orbitBall')
 
+# todo track ball with head. if within 90 of kick pos just walk there
+# else walk to point on 45 line
+def fastApproach(player):
+    if transitions.shouldRedecideKick(player):
+        return player.goLater('approachBall')
+
+    fastApproach.relH = player.decider.normalizeAngle(player.kick.setupH - player.brain.loc.h)
+
+    if player.firstFrame():
+        player.brain.tracker.trackBall()  
+
+    perpAngle = radians(player.brain.loc.h - 120)
+  
+
+    fastApproach.relX = player.brain.ball.rel_x + 50*sin(perpAngle)
+    fastApproach.relY = player.brain.ball.rel_y + 50*cos(perpAngle)
+
+    fastApproach.wayPoint = RelRobotLocation(fastApproach.relX,
+                                                fastApproach.relY,
+                                                0)
+
+    if (fastApproach.relX**2 + fastApproach.relY**2) < 2:
+        return player.goNow('spinToBall')        
+
+    player.brain.nav.approachTarget(fastApproach.wayPoint, fast = True)
+
+    return player.stay()
+
 @superState('positionAndKickBall')
 def orbitBall(player):
     """
@@ -88,6 +116,9 @@ def orbitBall(player):
     """
     # Calculate relative heading every frame
     relH = player.decider.normalizeAngle(player.kick.setupH - player.brain.loc.h)
+
+    if fabs(relH) > 40:
+        return player.goNow('fastApproach') 
 
     # Are we within the acceptable heading range?
     if (relH > -constants.ORBIT_GOOD_BEARING and

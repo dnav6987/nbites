@@ -99,6 +99,10 @@ class Navigator(FSA.FSA):
 
         self.goTo(self.brain.ball, CLOSE_ENOUGH, speed, True, fast = fast)
 
+    def approachTarget(self, dest, fast = False):
+        self.destination = dest
+        self.goTo(dest, CLOSE_ENOUGH, FAST_SPEED, True, False)
+
     def chaseBallDeceleratingSpeed(self):
         MAX_SPEED = FULL_SPEED
         MIN_SPEED = BRISK_SPEED
