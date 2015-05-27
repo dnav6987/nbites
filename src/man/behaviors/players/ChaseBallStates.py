@@ -90,21 +90,43 @@ def fastApproach(player):
     fastApproach.relH = player.decider.normalizeAngle(player.kick.setupH - player.brain.loc.h)
 
     if player.firstFrame():
-        player.brain.tracker.trackBall()  
-
-    perpAngle = radians(player.brain.loc.h - 120 - player.kick.setupH)
-  
-
-    fastApproach.relX = player.brain.ball.rel_x + 50*sin(perpAngle)
-    fastApproach.relY = player.brain.ball.rel_y + 50*cos(perpAngle)
-
-    fastApproach.wayPoint = RelRobotLocation(fastApproach.relX,
-                                                fastApproach.relY,
-                                                0)
+        player.brain.tracker.trackBall()
+        fastApproach.relX = 100
+        fastApproach.relY = 100
 
     if (fastApproach.relX**2 + fastApproach.relY**2) < 2:
         return player.goNow('spinToBall')        
+
     else:
+        positions = []
+        for i in range(-2, 2):
+            angle = radians(player.brain.loc.h - 90 - player.kick.setupH - 30*i)
+            thisRelX = player.brain.ball.rel_x + 50*sin(angle)
+            thisRelY = player.brain.ball.rel_y + 50*cos(angle)
+            thisDist = (thisRelX**2 + thisRelY**2)**.5
+            positions.append((thisRelX, thisRelY, thisDist))
+
+        sortPos = sorted(positions, key=lambda pos: pos[2])
+        for p in sortPos:
+            print p
+        print ""
+
+        fastApproach.relX = sortPos[0][0]
+        fastApproach.relY = sortPos[0][1]    
+
+        fastApproach.wayPoint = RelRobotLocation(fastApproach.relX,
+                                                    fastApproach.relY,
+                                                    0)
+
+        # perpAngle = radians(player.brain.loc.h - 120 - player.kick.setupH)
+
+        # fastApproach.relX = player.brain.ball.rel_x + 50*sin(perpAngle)
+        # fastApproach.relY = player.brain.ball.rel_y + 50*cos(perpAngle)
+
+        # fastApproach.wayPoint = RelRobotLocation(fastApproach.relX,
+        #                                             fastApproach.relY,
+        #                                             0)
+
         player.brain.nav.approachTarget(fastApproach.wayPoint, fast = True)
 
     return player.stay()
