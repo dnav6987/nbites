@@ -92,7 +92,7 @@ def fastApproach(player):
     if player.firstFrame():
         player.brain.tracker.trackBall()  
 
-    perpAngle = radians(player.brain.loc.h - 120)
+    perpAngle = radians(player.brain.loc.h - 120 - player.kick.setupH)
   
 
     fastApproach.relX = player.brain.ball.rel_x + 50*sin(perpAngle)
@@ -104,8 +104,8 @@ def fastApproach(player):
 
     if (fastApproach.relX**2 + fastApproach.relY**2) < 2:
         return player.goNow('spinToBall')        
-
-    player.brain.nav.approachTarget(fastApproach.wayPoint, fast = True)
+    else:
+        player.brain.nav.approachTarget(fastApproach.wayPoint, fast = True)
 
     return player.stay()
 
@@ -117,7 +117,7 @@ def orbitBall(player):
     # Calculate relative heading every frame
     relH = player.decider.normalizeAngle(player.kick.setupH - player.brain.loc.h)
 
-    if fabs(relH) > 40:
+    if fabs(relH) > 30:
         return player.goNow('fastApproach') 
 
     # Are we within the acceptable heading range?
