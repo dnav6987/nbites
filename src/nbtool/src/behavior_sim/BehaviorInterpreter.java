@@ -339,8 +339,8 @@ public class BehaviorInterpreter implements nbtool.io.CommonIO.IOFirstResponder
         // DONE
         return BallModel.VisionBall.newBuilder()
                             .setOn(on)
-                            .setFramesOn(framesOn)
-                            .setFramesOff(framesOff)
+                            .setFramesOn(50)
+                            .setFramesOff(0)
                             .build();
     }
 
