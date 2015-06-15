@@ -98,6 +98,38 @@ def clearIt(player):
 
     return Transition.getNextState(player, clearIt)
 
+# where ever you want to check for a rekick just import this:
+# import ChaseBallTransitions as chaseTrans
+# and use chaseTrans.shouldKickAgain(player)
+@superState('gameControllerResponder')
+def executeGoalieMotionKick(player):
+    """
+    Do a motion kick.
+    """
+    if player.brain.loc.h > 0:
+        player.kick = kicks.M_LEFT_CHIP_SHOT
+    else:
+        player.kick = kicks.M_LEFT_CHIP_SHOT
+
+    ball = player.brain.ball
+    executeGoalieMotionKick.kickPose = RelRobotLocation(ball.rel_x - player.kick.setupX,
+                                                  ball.rel_y - player.kick.setupY,
+                                                  0)
+
+    if player.firstFrame():
+        player.brain.nav.destinationWalkTo(executeMotionKick.kickPose,
+                                           nav.CAREFUL_SPEED,
+                                           player.kick)
+    elif player.brain.ball.vis.on: # don't update if we don't see the ball
+        player.brain.nav.updateDestinationWalkDest(executeMotionKick.kickPose)
+
+    # TODO not ideal at all!
+    if player.counter > 40:
+        player.inKickingState = False
+        return player.goNow('returnToGoal')
+
+    return player.stay()    
+
 @superState('gameControllerResponder')
 def didIKickIt(player):
     if player.firstFrame():
