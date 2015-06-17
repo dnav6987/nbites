@@ -124,12 +124,12 @@ def followPotentialField(player):
             player.setWalk(0, 0, 0)
 
         else:
-            normalizer = Navigator.QUICK_SPEED/(xComp**2 + yComp**2)**.5
+            normalizer = Navigator.FAST_SPEED/(xComp**2 + yComp**2)**.5
 
             if ball.bearing_deg > constants.SHOULD_SPIN_TO_BALL_BEARING/2:
-                hComp = copysign(Navigator.SLOW_SPEED, ball.bearing_deg)
+                hComp = copysign(Navigator.GRADUAL_SPEED, ball.bearing_deg)
             else:
-                hComp = copysign(Navigator.SLOW_SPEED, ball.bearing_deg)
+                hComp = copysign(Navigator.GRADUAL_SPEED, ball.bearing_deg)
 
             player.setWalk(normalizer*xComp, normalizer*yComp, hComp)
 
