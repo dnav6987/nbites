@@ -4,7 +4,6 @@ Here we house all of the state methods used for chasing the ball
 import ChaseBallTransitions as transitions
 import ChaseBallConstants as constants
 import RoleConstants as roleConstants
-import DribbleTransitions as dr_trans
 import PlayOffBallTransitions as playOffTransitions
 from ..navigator import Navigator
 from ..kickDecider import KickDecider
@@ -33,7 +32,7 @@ def approachBall(player):
         elif player.penaltyKicking:
             return player.goNow('prepareForPenaltyKick')
         else:
-            player.brain.nav.chaseBall(Navigator.FULL_SPEED, fast = True)
+            player.brain.nav.chaseBall(Navigator.FAST_SPEED, fast = True)
 
     if (transitions.shouldPrepareForKick(player) or
         player.brain.nav.isAtPosition()):
@@ -42,7 +41,7 @@ def approachBall(player):
     elif transitions.shouldDecelerate(player):
         player.brain.nav.chaseBallDeceleratingSpeed()
     else:
-        player.brain.nav.chaseBall(Navigator.FULL_SPEED, fast = True)
+        player.brain.nav.chaseBall(Navigator.FAST_SPEED, fast = True)
 
 
 @defaultState('prepareForKick')
@@ -80,7 +79,11 @@ def prepareForKick(player):
 
     return player.goNow('followPotentialField')
 
-@superState('positionAndKickBall')
+@superState('gameControllerResponder')
+@ifSwitchLater(transitions.shouldApproachBallAgain, 'approachBall')
+@ifSwitchNow(transitions.shouldSupport, 'positionAsSupporter')
+@ifSwitchNow(transitions.shouldReturnHome, 'playOffBall')
+@ifSwitchNow(transitions.shouldFindBall, 'findBall')
 def followPotentialField(player):
     """
     This state is based on electric field potential vector paths. The ball is treated as an
@@ -121,16 +124,18 @@ def followPotentialField(player):
         yComp = constants.ATTRACTOR_REPULSOR_RATIO*attractorY/attractorDist**3 - repulsorY/repulsorDist**3
 
         if xComp == 0 and yComp == 0:
-            player.setWalk(0, 0, 0)
+            player.setWalk(0, 0, copysign(Navigator.FAST_SPEED, ball.bearing_deg))
 
         else:
             normalizer = Navigator.FAST_SPEED/(xComp**2 + yComp**2)**.5
 
-            if ball.bearing_deg > constants.SHOULD_SPIN_TO_BALL_BEARING/2:
-                hComp = copysign(Navigator.GRADUAL_SPEED, ball.bearing_deg)
+            if fabs(ball.bearing_deg) < constants.FACING_BALL_ACCEPTABLE_BEARING:
+                hComp = 0
+            elif attractorDist < constants.CLOSE_TO_ATTRACTOR_DIST:
+                hComp = copysign(Navigator.FAST_SPEED, ball.bearing_deg)
             else:
-                hComp = copysign(Navigator.GRADUAL_SPEED, ball.bearing_deg)
-
+                hComp = copysign(Navigator.MEDIUM_SPEED, ball.bearing_deg)
+            
             player.setWalk(normalizer*xComp, normalizer*yComp, hComp)
 
     return player.stay()
@@ -262,21 +267,21 @@ def positionForKick(player):
     if player.firstFrame():
         player.brain.tracker.lookStraightThenTrack()
         player.brain.nav.destinationWalkTo(positionForKick.kickPose,
-                                           Navigator.BRISK_SPEED)
+                                           Navigator.MEDIUM_SPEED)
         positionForKick.slowDown = False
     elif player.brain.ball.vis.on: # don't update if we don't see the ball
         # slows down the walk when very close to the ball to stabalize motion kicking and to not walk over the ball
-        if player.motionKick:
+        if player.kick == kicks.M_LEFT_STRAIGHT or player.kick == kicks.M_RIGHT_STRAIGHT:
             if (not positionForKick.slowDown and 
                 player.brain.ball.distance < constants.SLOW_DOWN_TO_BALL_DIST):
                 positionForKick.slowDown = True
                 player.brain.nav.destinationWalkTo(positionForKick.kickPose,
-                                           Navigator.SLOW_SPEED)
+                                           Navigator.GRADUAL_SPEED)
             elif (positionForKick.slowDown and 
                 player.brain.ball.distance >= constants.SLOW_DOWN_TO_BALL_DIST):
                 positionForKick.slowDown = False
                 player.brain.nav.destinationWalkTo(positionForKick.kickPose,
-                                           Navigator.BRISK_SPEED)
+                                           Navigator.MEDIUM_SPEED)
             else:
                 player.brain.nav.updateDestinationWalkDest(positionForKick.kickPose)
         else:
@@ -357,15 +362,8 @@ def penaltyKickSpin(player):
         print "Y: ", player.brain.ball.rel_y
         return player.stay()
 
-    postBearing = player.brain.yglp.bearing_deg
-
-    if not player.penaltyKickRight or player.brain.yglp.certainty == 0:
-        if player.brain.yglp.certainty == 0:
-            print "I MIGHT be using right gp for left"
-        postBearing = player.brain.ygrp.bearing_deg
-
     if player.penaltyKickRight:
-        if postBearing > -12:
+        if player.brain.loc.h < -20:
             penaltyKickSpin.threshCount += 1
             if penaltyKickSpin.threshCount == 3:
                 player.brain.nav.stand()
@@ -376,7 +374,7 @@ def penaltyKickSpin(player):
         else:
             penaltyKickSpin.threshCount = 0
     else:
-        if postBearing < 12:
+        if player.brain.loc.h > 20:
             penaltyKickSpin.threshCount += 1
             if penaltyKickSpin.threshCount == 3:
                 player.brain.nav.stand()
@@ -386,10 +384,6 @@ def penaltyKickSpin(player):
                 return player.goNow('positionForPenaltyKick')
         else:
             penaltyKickSpin.threshCount = 0
-
-    # print "Left post: ", player.brain.ygrp.bearing_deg
-    # print "Right post: ", player.brain.yglp.bearing_deg
-    # print "-----------------------------"
 
     return player.stay()
 
