@@ -2,6 +2,7 @@
 * @file WalkingEngine.h
 * Declaration a module that creates the walking motions
 * @author Colin Graf
+* 
 */
 
 #pragma once
