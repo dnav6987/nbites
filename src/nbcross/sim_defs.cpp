@@ -19,7 +19,7 @@ int Behaviors_func() {
     // std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
     assert(args.size() == 14);
-    
+
     sim->setWorldModels(comm);
     sim->run(args);
 
